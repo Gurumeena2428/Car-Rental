@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("USER")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+}
+
+model Car {
+  id           Int           @id @default(autoincrement())
+  name         String
+  brand        String
+  type         String
+  image        String
+  pricePerDay  Int
+  rating       Float         @default(4.5)
+  reviews      Int           @default(0)
+  seats        Int
+  transmission String
+  fuel         String
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  locations    CarLocation[]
+  bookings     Booking[]
+
+  @@index([active])
+  @@index([type])
+  @@index([brand])
+}
+
+model CarLocation {
+  id    Int    @id @default(autoincrement())
+  city  String
+  carId Int
+  car   Car    @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@unique([carId, city])
+  @@index([city])
+}
+
+model Booking {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  carId           Int
+  pickupLocation  String
+  dropoffLocation String
+  pickupDate      DateTime
+  returnDate      DateTime
+  totalDays       Int
+  totalPrice      Int
+  status          String   @default("CONFIRMED")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car             Car      @relation(fields: [carId], references: [id])
+
+  @@index([userId])
+  @@index([carId])
+  @@index([status])
+  @@index([pickupDate, returnDate])
+}
